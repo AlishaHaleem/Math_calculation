@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Challenge Game</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+        }
+
+        .game-container {
+            width: 90%;
+            max-width: 500px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .score {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00ff88;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        .timer {
+            font-size: 1.5rem;
+            color: #ff6b6b;
+            text-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+        }
+
+        .difficulty {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .problem-display {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .problem {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+
+        .answer-display {
+            font-size: 2.5rem;
+            height: 60px;
+            margin-bottom: 1rem;
+            color: #00ff88;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        .hint {
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            display: none;
+        }
+
+        .hint.visible {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .hint-button {
+            width: 100%;
+            padding: 0.8rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .hint-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .numpad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .numpad-button {
+            aspect-ratio: 1;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .numpad-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        .numpad-button.enter {
+            background: linear-gradient(45deg, #00ff88, #00b8ff);
+            grid-column: span 3;
+            aspect-ratio: auto;
+            padding: 1rem;
+        }
+
+        .numpad-button.enter:hover {
+            background: linear-gradient(45deg, #00cc6d, #0095cc);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .game-over {
+            text-align: center;
+            display: none;
+        }
+
+        .game-over.visible {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .final-score {
+            font-size: 3rem;
+            margin: 2rem 0;
+            color: #00ff88;
+        }
+
+        .restart-button {
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            background: linear-gradient(45deg, #00ff88, #00b8ff);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .restart-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div id="gameContent">
+            <div class="game-header">
+                <div class="score">Score: <span id="scoreDisplay">0</span></div>
+                <div class="difficulty" id="difficultyDisplay">Beginner</div>
+                <div class="timer"><span id="timerDisplay">60</span>s</div>
+            </div>
+
+            <div class="problem-display">
+                <div class="problem" id="problemDisplay">12 + 8 = ?</div>
+                <div class="answer-display" id="answerDisplay">_____</div>
+            </div>
+
+            <div class="hint" id="hintDisplay"></div>
+
+            <button class="hint-button" id="hintButton">
+                Get Hint
+            </button>
+
+            <div class="numpad">
+                <button class="numpad-button">7</button>
+                <button class="numpad-button">8</button>
+                <button class="numpad-button">9</button>
+                <button class="numpad-button">4</button>
+                <button class="numpad-button">5</button>
+                <button class="numpad-button">6</button>
+                <button class="numpad-button">1</button>
+                <button class="numpad-button">2</button>
+                <button class="numpad-button">3</button>
+                <button class="numpad-button">0</button>
+                <button class="numpad-button">.</button>
+                <button class="numpad-button" id="backspace">⌫</button>
+                <button class="numpad-button enter">Enter</button>
+            </div>
+        </div>
+
+        <div class="game-over" id="gameOver">
+            <h1>Game Over!</h1>
+            <div class="final-score">Score: <span id="finalScore">0</span></div>
+            <button class="restart-button" id="restartButton">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        const MATH_PROBLEMS = {
+            beginner: [
+                { problem: "12 + 8", solution: "20", hint: "Think of counting by tens" },
+                { problem: "15 - 7", solution: "8", hint: "Count backwards" },
+                { problem: "4 × 5", solution: "20", hint: "Count by fives" }
+            ],
+            intermediate: [
+                { problem: "125 ÷ 5", solution: "25", hint: "Think of 5 times tables" },
+                { problem: "13 × 12", solution: "156", hint: "(10 × 12) + (3 × 12)" },
+                { problem: "72 ÷ 9", solution: "8", hint: "Use multiplication facts" }
+            ],
+            advanced: [
+                { problem: "√144", solution: "12", hint: "What number times itself equals 144?" },
+                { problem: "23²", solution: "529", hint: "23 times itself" },
+                { problem: "156 ÷ 12", solution: "13", hint: "Break down into factors" }
+            ]
+        };
+
+        let currentDifficulty = 'beginner';
+        let currentProblemIndex = 0;
+        let score = 0;
+        let timeRemaining = 60;
+        let timer;
+        let currentAnswer = '';
+
+        const updateDisplay = () => {
+            document.getElementById('scoreDisplay').textContent = score;
+            document.getElementById('timerDisplay').textContent = timeRemaining;
+            document.getElementById('difficultyDisplay').textContent = currentDifficulty;
+            document.getElementById('problemDisplay').textContent =
+                `${MATH_PROBLEMS[currentDifficulty][currentProblemIndex].problem} = ?`;
+            document.getElementById('answerDisplay').textContent = currentAnswer || '_____';
+        };
+
+        const startTimer = () => {
+            timer = setInterval(() => {
+                timeRemaining--;
+                updateDisplay();
+                if (timeRemaining <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        };
+
+        const handleInput = (value) => {
+            if (value === 'Enter') {
+                checkAnswer();
+            } else if (value === '⌫') {
+                currentAnswer = currentAnswer.slice(0, -1);
+            } else {
+                currentAnswer += value;
+            }
+            updateDisplay();
+        };
+
+        const checkAnswer = () => {
+            const currentProblem = MATH_PROBLEMS[currentDifficulty][currentProblemIndex];
+            if (currentAnswer === currentProblem.solution) {
+                score += Math.floor(timeRemaining * 1.5);
+                nextProblem();
+            }
+        };
+
+        const nextProblem = () => {
+            currentAnswer = '';
+            if (currentProblemIndex < MATH_PROBLEMS[currentDifficulty].length - 1) {
+                currentProblemIndex++;
+            } else {
+                if (currentDifficulty === 'beginner') {
+                    currentDifficulty = 'intermediate';
+                } else if (currentDifficulty === 'intermediate') {
+                    currentDifficulty = 'advanced';
+                } else {
+                    endGame();
+                    return;
+                }
+                currentProblemIndex = 0;
+            }
+            timeRemaining = 60;
+            updateDisplay();
+        };
+
+        const endGame = () => {
+            clearInterval(timer);
+            document.getElementById('gameContent').style.display = 'none';
+            document.getElementById('gameOver').classList.add('visible');
+            document.getElementById('finalScore').textContent = score;
+        };
+
+        const restartGame = () => {
+            currentDifficulty = 'beginner';
+            currentProblemIndex = 0;
+            score = 0;
+            timeRemaining = 60;
+            currentAnswer = '';
+            document.getElementById('gameContent').style.display = 'block';
+            document.getElementById('gameOver').classList.remove('visible');
+            document.getElementById('hintDisplay').classList.remove('visible');
+            updateDisplay();
+            startTimer();
+        };
+
+        // Event Listeners
+        document.querySelectorAll('.numpad-button').forEach(button => {
+            button.addEventListener('click', () => handleInput(button.textContent));
+        });
+
+        document.getElementById('hintButton').addEventListener('click', () => {
+            const hintDisplay = document.getElementById('hintDisplay');
+            hintDisplay.textContent = MATH_PROBLEMS[currentDifficulty][currentProblemIndex].hint;
+            hintDisplay.classList.add('visible');
+            score -= 5; // Penalty for using hint
+            updateDisplay();
+        });
+
+        document.getElementById('restartButton').addEventListener('click', restartGame);
+
+        // Initialize game
+        updateDisplay();
+        startTimer();
+    </script>
+</body>
+</html>
